@@ -227,11 +227,16 @@ class GooglePhotosDownload(object):
             os.utime(str(local_full_path),
                      (Utils.safe_timestamp(media_item.modify_date),
                       Utils.safe_timestamp(media_item.create_date)))
-            os.chmod(str(local_full_path), 0o666 & ~self.current_umask)
+        except OSError:
+            log.debug("Saving file %s with mtime as per ctime" % media_item.filename)
+            os.utime(str(local_full_path),
+                     (Utils.safe_timestamp(media_item.create_date),
+                      Utils.safe_timestamp(media_item.create_date)))
         except KeyboardInterrupt:
             log.debug("User cancelled download thread")
             raise
         finally:
+            os.chmod(str(local_full_path), 0o666 & ~self.current_umask)
             if temp_file:
                 temp_file.close()
             if t_path.exists():
